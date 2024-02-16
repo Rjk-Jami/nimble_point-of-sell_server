@@ -58,6 +58,7 @@ async function run() {
   })
 
 
+
   
  }
     //jwt
@@ -87,7 +88,7 @@ async function run() {
   })
 
   // add product form to db
-  app.post('/createProduct', async(req,res)=>{
+  app.post('/createProduct', verifyJWT, async(req,res)=>{
     const newProduct = req.body
     const product = await productsCollection.insertOne(newProduct)
     res.send(product)
