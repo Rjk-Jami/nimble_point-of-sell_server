@@ -39,7 +39,7 @@ async function run() {
 
     //verify JWT valid token middleware
  const verifyJWT = (req, res, next) =>{
-  console.log("verifyJwt" ,req.headers.authorization)
+  // console.log("verifyJwt" ,req.headers.authorization)
   const authorization =req.headers.authorization;
 
   if (!authorization) {
@@ -70,17 +70,18 @@ async function run() {
       res.send({token})
     })
     //search products
-    app.get('/getProductByCode/:letter', async (req, res) => {
+  //   app.get('/getProductByCode/:letter', async (req, res) => {
         
-        const letter = req.params.letter.toUpperCase(); // Convert to uppercase for case-insensitivity
-        console.log(letter);
-      const query = { name: { $regex: `${letter}` } }; // Use a regular expression for matching the starting letter
+  //       let letter = req.params.letter; // Convert to uppercase for case-insensitivity
+  //        letter = req.params.letter[0].toUpperCase(); // Convert to uppercase for case-insensitivity
+  //       console.log(letter);
+  //     const query = { name: { $regex: `${letter}` } }; // Use a regular expression for matching the starting letter
 
-      const product = await productsCollection.find(query).toArray();
-        console.log(product);
-        res.send(product);
+  //     const product = await productsCollection.find(query).toArray();
+  //       console.log(product);
+  //       res.send(product);
 
-  });
+  // });
 //get all products
   app.get('/products', verifyJWT, async(req,res)=>{
     const products = await productsCollection.find().toArray()
