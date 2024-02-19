@@ -15,7 +15,7 @@ const jwt = require('jsonwebtoken');
 
 // mongodb
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://nimble-server:djwZpbGZtXhqcmLu@cluster0.anem91w.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -88,11 +88,20 @@ async function run() {
     res.send(products)
   })
 
-  // add product form to db
+  // add product form dashboard to db
   app.post('/createProduct', verifyJWT, async(req,res)=>{
     const newProduct = req.body
     const product = await productsCollection.insertOne(newProduct)
     res.send(product)
+  })
+
+  //delete a single Product
+  app.delete('/deleteProduct/:id', verifyJWT, async(req,res)=>{
+    const id = req.params.id
+    console.log(id)
+    const query = { _id : new ObjectId(id) }
+    const deleteResult = await productsCollection.deleteOne(query)
+    res.send(deleteResult)
   })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
