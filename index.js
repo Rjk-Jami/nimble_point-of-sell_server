@@ -103,6 +103,15 @@ async function run() {
     const deleteResult = await productsCollection.deleteOne(query)
     res.send(deleteResult)
   })
+//update product
+  app.patch('/updateProduct/:id', verifyJWT, async(req, res)=>{
+    const id = req.params.id
+    const updateProduct = req.body
+    console.log(id,updateProduct)
+    const product = await productsCollection.updateOne({_id : new ObjectId(id)}, {$set: updateProduct})
+    res.send(product)
+
+  })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Connected to Nimble server. You successfully connected to MongoDB!");
