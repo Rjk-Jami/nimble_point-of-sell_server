@@ -35,83 +35,108 @@ async function run() {
     //database 
     const database = client.db("NimbleDB");
     //sub-category
+    // all products
     const productsCollection = database.collection("products")
+    // all sales
+    const salesCollection = database.collection("sales")
 
     //verify JWT valid token middleware
- const verifyJWT = (req, res, next) =>{
-  // console.log("verifyJwt" ,req.headers.authorization)
-  const authorization =req.headers.authorization;
+    const verifyJWT = (req, res, next) => {
+      // console.log("verifyJwt" ,req.headers.authorization)
+      const authorization = req.headers.authorization;
 
-  if (!authorization) {
-    return res.status(401).send({ error: true, message: "unauthorized access- 1" })
-  }
-  const token = authorization.split(" ")[1]
-  // console.log(token)
-  jwt.verify(token, process.env.Access_Token, (err, decoded)=>{
+      if (!authorization) {
+        return res.status(401).send({ error: true, message: "unauthorized access- 1" })
+      }
+      const token = authorization.split(" ")[1]
+      // console.log(token)
+      jwt.verify(token, process.env.Access_Token, (err, decoded) => {
 
-    if(err){
-      return res.status(403).send({ error: true, message: "unauthorized access -2" })
+        if (err) {
+          return res.status(403).send({ error: true, message: "unauthorized access -2" })
+        }
+        req.decoded = decoded
+
+        next();
+      })
+
+
+
+
     }
-    req.decoded = decoded
-    
-    next();
-  })
-
-
-
-  
- }
     //jwt
-    app.post('/jwt', (req,res)=>{
+    app.post('/jwt', (req, res) => {
       const user = req.body
       // console.log(user);
-      const token = jwt.sign(user,process.env.Access_Token, {expiresIn: '1h'})
+      const token = jwt.sign(user, process.env.Access_Token, { expiresIn: '1h' })
       // console.log(token)
-      res.send({token})
+      res.send({ token })
     })
     //search products
-  //   app.get('/getProductByCode/:letter', async (req, res) => {
-        
-  //       let letter = req.params.letter; // Convert to uppercase for case-insensitivity
-  //        letter = req.params.letter[0].toUpperCase(); // Convert to uppercase for case-insensitivity
-  //       console.log(letter);
-  //     const query = { name: { $regex: `${letter}` } }; // Use a regular expression for matching the starting letter
+    //   app.get('/getProductByCode/:letter', async (req, res) => {
 
-  //     const product = await productsCollection.find(query).toArray();
-  //       console.log(product);
-  //       res.send(product);
+    //       let letter = req.params.letter; // Convert to uppercase for case-insensitivity
+    //        letter = req.params.letter[0].toUpperCase(); // Convert to uppercase for case-insensitivity
+    //       console.log(letter);
+    //     const query = { name: { $regex: `${letter}` } }; // Use a regular expression for matching the starting letter
 
-  // });
-//get all products
-  app.get('/products', verifyJWT, async(req,res)=>{
-    const products = await productsCollection.find().toArray()
-    res.send(products)
-  })
+    //     const product = await productsCollection.find(query).toArray();
+    //       console.log(product);
+    //       res.send(product);
 
-  // add product form dashboard to db
-  app.post('/createProduct', verifyJWT, async(req,res)=>{
-    const newProduct = req.body
-    const product = await productsCollection.insertOne(newProduct)
-    res.send(product)
-  })
+    // });
+    //get all products
 
-  //delete a single Product
-  app.delete('/deleteProduct/:id', verifyJWT, async(req,res)=>{
-    const id = req.params.id
-    console.log(id)
-    const query = { _id : new ObjectId(id) }
-    const deleteResult = await productsCollection.deleteOne(query)
-    res.send(deleteResult)
-  })
-//update product
-  app.patch('/updateProduct/:id', verifyJWT, async(req, res)=>{
-    const id = req.params.id
-    const updateProduct = req.body
-    console.log(id,updateProduct)
-    const product = await productsCollection.updateOne({_id : new ObjectId(id)}, {$set: updateProduct})
-    res.send(product)
+    //add sale to db
+    app.post('/sales', verifyJWT, async (req, res) => {
+      const newSale = req.body
+      console.log(newSale)
+      // newSale?.products.map()
+      const sale = await salesCollection.insertOne(newSale)
+      res.send(sale)
+    })
 
-  })
+    // update product after sale
+    app.patch('/updateProductsAfterSale/:id', verifyJWT, async (req, res) => {
+    
+        const updateProduct = req.body;
+        const id = req.params.id;
+        // console.log(updateProduct, id);
+        const product = await productsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateProduct });
+        res.send(product);
+
+    });
+
+    
+    app.get('/products', verifyJWT, async (req, res) => {
+      const products = await productsCollection.find().toArray()
+      res.send(products)
+    })
+
+    // add product form dashboard to db
+    app.post('/createProduct', verifyJWT, async (req, res) => {
+      const newProduct = req.body
+      const product = await productsCollection.insertOne(newProduct)
+      res.send(product)
+    })
+
+    //delete a single Product
+    app.delete('/deleteProduct/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id
+      // console.log(id)
+      const query = { _id: new ObjectId(id) }
+      const deleteResult = await productsCollection.deleteOne(query)
+      res.send(deleteResult)
+    })
+    //update product
+    app.patch('/updateProduct/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id
+      const updateProduct = req.body
+      console.log(id, updateProduct)
+      const product = await productsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateProduct })
+      res.send(product)
+
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Connected to Nimble server. You successfully connected to MongoDB!");
@@ -124,9 +149,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-    res.send('Nimble POS machine server!')
-  })
-  
-  app.listen(port, () => {
-    console.log(`Author - Raihan Jami Khan. Server: Nimble ${port}`)
-  })
+  res.send('Nimble POS machine server!')
+})
+
+app.listen(port, () => {
+  console.log(`Author - Raihan Jami Khan. Server: Nimble ${port}`)
+})
