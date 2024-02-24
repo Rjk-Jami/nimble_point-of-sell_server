@@ -96,6 +96,11 @@ async function run() {
       res.send(sale)
     })
 
+    //get sales
+    app.get('/sales', verifyJWT, async (req, res) => {
+      const products = await salesCollection.find().toArray()
+      res.send(products)
+    })
     // update product after sale
     app.patch('/updateProductsAfterSale/:id', verifyJWT, async (req, res) => {
     
