@@ -30,7 +30,8 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // for vercel turn it off
+    // await client.connect();
 
     //database 
     const database = client.db("NimbleDB");
@@ -39,6 +40,7 @@ async function run() {
     const productsCollection = database.collection("products")
     // all sales
     const salesCollection = database.collection("sales")
+    const usersCollection = database.collection("users")
 
     //verify JWT valid token middleware
     const verifyJWT = (req, res, next) => {
@@ -72,6 +74,26 @@ async function run() {
       // console.log(token)
       res.send({ token })
     })
+
+    //store user 
+    app.post('/user', async (req, res) => {
+      const user = req.body
+      // console.log(user)
+      const query = { email: user.email }
+      const existingUser = await usersCollection.findOne(query)
+      if (!existingUser) {
+        const result = await usersCollection.insertOne(user)
+        res.send(result)
+      }
+  
+    })
+
+    // get user
+    app.get('/users',verifyJWT, async(req,res)=>{
+      const users = await usersCollection.find().toArray()
+      res.send(users)
+    })
+
     //search products
     //   app.get('/getProductByCode/:letter', async (req, res) => {
 
@@ -90,7 +112,7 @@ async function run() {
     //add sale to db
     app.post('/sales', verifyJWT, async (req, res) => {
       const newSale = req.body
-      console.log(newSale)
+      // console.log(newSale)
       // newSale?.products.map()
       const sale = await salesCollection.insertOne(newSale)
       res.send(sale)
@@ -103,16 +125,16 @@ async function run() {
     })
     // update product after sale
     app.patch('/updateProductsAfterSale/:id', verifyJWT, async (req, res) => {
-    
-        const updateProduct = req.body;
-        const id = req.params.id;
-        // console.log(updateProduct, id);
-        const product = await productsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateProduct });
-        res.send(product);
+
+      const updateProduct = req.body;
+      const id = req.params.id;
+      // console.log(updateProduct, id);
+      const product = await productsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateProduct });
+      res.send(product);
 
     });
 
-    
+
     app.get('/products', verifyJWT, async (req, res) => {
       const products = await productsCollection.find().toArray()
       res.send(products)
@@ -137,7 +159,7 @@ async function run() {
     app.patch('/updateProduct/:id', verifyJWT, async (req, res) => {
       const id = req.params.id
       const updateProduct = req.body
-      console.log(id, updateProduct)
+      // console.log(id, updateProduct)
       const product = await productsCollection.updateOne({ _id: new ObjectId(id) }, { $set: updateProduct })
       res.send(product)
 
